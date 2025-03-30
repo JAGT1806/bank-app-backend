@@ -1,9 +1,7 @@
 package com.jagt.hexagonal.bankapp.client.infrastructure.output.persistence.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import com.jagt.hexagonal.bankapp.client.domain.model.utils.IdentificationType;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,10 +19,22 @@ public class ClientEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private IdentificationType identificationType;
+    @Column(nullable = false, unique = true, length = 20)
+    private String identificationNumber;
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String lastname;
+    @Column(nullable = false)
     private String email;
+    @Column(nullable = false)
     private LocalDate birthday;
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+    @Column(nullable = false)
     private LocalDateTime updatedAt;
 }
