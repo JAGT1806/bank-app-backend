@@ -3,6 +3,7 @@ package com.jagt.hexagonal.bankapp.client.application.service;
 import com.jagt.hexagonal.bankapp.client.application.ports.input.ClientServicePort;
 import com.jagt.hexagonal.bankapp.client.application.ports.output.ClientPersistencePort;
 import com.jagt.hexagonal.bankapp.client.domain.exception.AgeRestrictionException;
+import com.jagt.hexagonal.bankapp.client.domain.exception.ClientNotFoundException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.InvalidBirthdayException;
 import com.jagt.hexagonal.bankapp.client.domain.model.Client;
 import io.micrometer.common.util.StringUtils;
@@ -22,7 +23,7 @@ public class ClientService implements ClientServicePort {
     @Override
     public Client findClientById(Long id) {
         return clientPersistencePort.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new ClientNotFoundException(null));
     }
 
     @Override

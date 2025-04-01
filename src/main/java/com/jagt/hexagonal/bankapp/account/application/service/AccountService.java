@@ -2,6 +2,7 @@ package com.jagt.hexagonal.bankapp.account.application.service;
 
 import com.jagt.hexagonal.bankapp.account.application.ports.input.AccountServicePort;
 import com.jagt.hexagonal.bankapp.account.application.ports.output.AccountPersistencePort;
+import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotFoundException;
 import com.jagt.hexagonal.bankapp.account.domain.model.Account;
 import com.jagt.hexagonal.bankapp.account.domain.model.utils.AccountStatus;
 import com.jagt.hexagonal.bankapp.account.domain.model.utils.AccountType;
@@ -22,7 +23,7 @@ public class AccountService implements AccountServicePort {
 
     @Override
     public Account findAccountById(Long id) {
-        return accountPersistencePort.findById(id).orElseThrow();
+        return accountPersistencePort.findById(id).orElseThrow(() -> new AccountNotFoundException(null));
     }
 
     @Override
