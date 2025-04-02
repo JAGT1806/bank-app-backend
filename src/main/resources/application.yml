@@ -12,3 +12,6 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: update
+  jackson:
+    default-property-inclusion: non_null
+    property-naming-strategy: SNAKE_CASE
