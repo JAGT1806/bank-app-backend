@@ -40,7 +40,7 @@ public class ClientService implements ClientServicePort {
         LocalDate today = LocalDate.now();
         Period period = Period.between(client.getBirthday(), today);
 
-        if(client.getBirthday().isBefore(today))
+        if(client.getBirthday().isAfter(today))
             throw new InvalidBirthdayException(null);
 
 
