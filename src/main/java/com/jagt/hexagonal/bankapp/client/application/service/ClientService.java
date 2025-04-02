@@ -1,8 +1,11 @@
 package com.jagt.hexagonal.bankapp.client.application.service;
 
+import com.jagt.hexagonal.bankapp.account.application.ports.output.AccountPersistencePort;
+import com.jagt.hexagonal.bankapp.account.domain.model.Account;
 import com.jagt.hexagonal.bankapp.client.application.ports.input.ClientServicePort;
 import com.jagt.hexagonal.bankapp.client.application.ports.output.ClientPersistencePort;
 import com.jagt.hexagonal.bankapp.client.domain.exception.AgeRestrictionException;
+import com.jagt.hexagonal.bankapp.client.domain.exception.ClientHasAccountsException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.ClientNotFoundException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.InvalidBirthdayException;
 import com.jagt.hexagonal.bankapp.client.domain.model.Client;
@@ -19,6 +22,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ClientService implements ClientServicePort {
     private final ClientPersistencePort clientPersistencePort;
+    private final AccountPersistencePort accountPersistencePort;
 
     @Override
     public Client findClientById(Long id) {
@@ -71,6 +75,11 @@ public class ClientService implements ClientServicePort {
 
     @Override
     public void deleteClientById(Long id) {
+        List<Account> accounts = accountPersistencePort.findByClient_Id(id);
+
+        if(!accounts.isEmpty())
+            throw new ClientHasAccountsException(null);
+
         clientPersistencePort.deleteById(id);
     }
 }
