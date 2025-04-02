@@ -18,7 +18,7 @@ public class Transaction {
     private Long id;
     private TransactionType type;
     private BigDecimal amount;
+    private Account sourceAccount;
+    private Account destinationAccount;
     private LocalDateTime transactionDate;
-    private Account accountOrigin;
-    private Account accountDestination;
 }
