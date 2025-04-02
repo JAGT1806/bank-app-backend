@@ -16,12 +16,12 @@ public class TransactionController {
 
     @GetMapping
     public List<Transaction> getTransactions() {
-
+        return servicePort.getTransactions();
     }
 
     @GetMapping("/{id}")
     public Transaction getTransaction(@PathVariable Long id) {
-
+        return servicePort.getTransactionById(id);
     }
 
     @PostMapping("/deposit/{accountId}")

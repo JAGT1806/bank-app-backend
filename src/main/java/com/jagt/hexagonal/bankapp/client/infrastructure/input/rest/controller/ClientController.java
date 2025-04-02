@@ -7,6 +7,7 @@ import com.jagt.hexagonal.bankapp.client.infrastructure.input.rest.request.Clien
 import com.jagt.hexagonal.bankapp.client.infrastructure.input.rest.request.ClientUpdateRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class ClientController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public Client createClient(@Valid @RequestBody ClientCreateRequest request) {
         return servicePort.saveClient(mapper.toClient(request));
     }
