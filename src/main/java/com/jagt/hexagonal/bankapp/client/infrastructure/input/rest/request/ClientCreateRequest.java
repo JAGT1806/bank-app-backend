@@ -6,7 +6,7 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 public record ClientCreateRequest(
-        @NotBlank(message = "El tipo de identificación es obligatorio")
+        @NotNull(message = "El tipo de identificación es obligatorio")
         IdentificationType identificationType,
 
         @NotBlank(message = "El número de identificación es obligatorio")
