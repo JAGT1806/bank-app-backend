@@ -9,6 +9,7 @@ import com.jagt.hexagonal.bankapp.account.domain.model.utils.AccountType;
 import com.jagt.hexagonal.bankapp.client.application.ports.output.ClientPersistencePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -73,6 +74,7 @@ public class AccountService implements AccountServicePort {
         accountPersistencePort.save(account);
     }
 
+    @Transactional
     @Override
     public void withdraw(Long id, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -80,17 +82,24 @@ public class AccountService implements AccountServicePort {
         }
 
         Account account = findAccountById(id);
+        BigDecimal amountToWithdraw = amount;
+
+        if(!account.isGmfExempt()) {
+            BigDecimal gmf = amount.multiply(new BigDecimal("0.004")); // 4 x 1000
+            amountToWithdraw = amount.add(gmf);
+        }
 
         if (account.getBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar el retiro.");
         }
 
-        account.setBalance(account.getBalance().subtract(amount));
+        account.setBalance(account.getBalance().subtract(amountToWithdraw));
         account.setUpdatedAt(LocalDateTime.now());
 
         accountPersistencePort.save(account);
     }
 
+    @Transactional
     @Override
     public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -99,12 +108,18 @@ public class AccountService implements AccountServicePort {
 
         Account fromAccount = findAccountById(fromAccountId);
         Account toAccount = findAccountById(toAccountId);
+        BigDecimal amountToTransfer = amount;
+
+        if(!fromAccount.isGmfExempt()) {
+            BigDecimal gmf = amount.multiply(new BigDecimal("0.004")); // 4x1000
+            amountToTransfer = amount.add(gmf);
+        }
 
         if (fromAccount.getBalance().compareTo(amount) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar la transferencia.");
         }
 
-        fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+        fromAccount.setBalance(fromAccount.getBalance().subtract(amountToTransfer));
         toAccount.setBalance(toAccount.getBalance().add(amount));
 
         fromAccount.setUpdatedAt(LocalDateTime.now());
