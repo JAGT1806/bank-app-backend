@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String error, String message) {
-        return buildErrorResponse(status, error, List.of(message));
+        return buildErrorResponse(status, error, message != null ? List.of(message) : List.of());
     }
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String error, List<String> messages) {
