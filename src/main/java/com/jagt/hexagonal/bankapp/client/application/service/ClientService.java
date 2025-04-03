@@ -12,6 +12,7 @@ import com.jagt.hexagonal.bankapp.client.domain.model.Client;
 import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ public class ClientService implements ClientServicePort {
     }
 
     @Override
+    @Transactional
     public Client saveClient(Client client) {
         LocalDate today = LocalDate.now();
         Period period = Period.between(client.getBirthday(), today);
@@ -54,6 +56,7 @@ public class ClientService implements ClientServicePort {
     }
 
     @Override
+    @Transactional
     public Client updateClient(Long id, Client client) {
         return clientPersistencePort.findById(id)
                 .map(savedClient -> {
@@ -74,6 +77,7 @@ public class ClientService implements ClientServicePort {
     }
 
     @Override
+    @Transactional
     public void deleteClientById(Long id) {
         List<Account> accounts = accountPersistencePort.findByClient_Id(id);
 

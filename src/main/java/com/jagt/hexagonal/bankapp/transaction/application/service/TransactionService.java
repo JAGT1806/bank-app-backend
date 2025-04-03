@@ -8,6 +8,7 @@ import com.jagt.hexagonal.bankapp.transaction.domain.model.Transaction;
 import com.jagt.hexagonal.bankapp.transaction.domain.model.utils.TransactionType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class TransactionService implements TransactionServicePort {
     }
 
     @Override
+    @Transactional
     public Transaction deposit(Long accountId, BigDecimal amount) {
         accountService.deposit(accountId, amount);
 
@@ -43,6 +45,7 @@ public class TransactionService implements TransactionServicePort {
     }
 
     @Override
+    @Transactional
     public Transaction withdraw(Long accountId, BigDecimal amount) {
         accountService.withdraw(accountId, amount);
 
@@ -56,6 +59,7 @@ public class TransactionService implements TransactionServicePort {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Transaction transfer(Long sourceAccountId, Long destinationAccountId, BigDecimal amount) {
         accountService.transfer(sourceAccountId, destinationAccountId, amount);
 
