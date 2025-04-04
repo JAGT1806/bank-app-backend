@@ -1,4 +1,4 @@
-package com.jagt.hexagonal.bankapp.common.handler;
+package com.jagt.hexagonal.bankapp.common.infrastructure.web.handler;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotActivatedException;
@@ -7,7 +7,7 @@ import com.jagt.hexagonal.bankapp.client.domain.exception.AgeRestrictionExceptio
 import com.jagt.hexagonal.bankapp.client.domain.exception.ClientHasAccountsException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.ClientNotFoundException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.InvalidBirthdayException;
-import com.jagt.hexagonal.bankapp.common.response.ErrorResponse;
+import com.jagt.hexagonal.bankapp.common.infrastructure.web.response.ErrorResponse;
 import com.jagt.hexagonal.bankapp.transaction.domain.exception.TransactionNotFoundException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;

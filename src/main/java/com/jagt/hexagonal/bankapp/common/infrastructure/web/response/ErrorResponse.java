@@ -1,4 +1,4 @@
-package com.jagt.hexagonal.bankapp.common.response;
+package com.jagt.hexagonal.bankapp.common.infrastructure.web.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
