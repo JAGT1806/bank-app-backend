@@ -79,6 +79,7 @@ public class ClientService implements ClientServicePort {
     @Override
     @Transactional
     public void deleteClientById(Long id) {
+        findClientById(id);
         List<Account> accounts = accountPersistencePort.findByClient_Id(id);
 
         if(!accounts.isEmpty())
