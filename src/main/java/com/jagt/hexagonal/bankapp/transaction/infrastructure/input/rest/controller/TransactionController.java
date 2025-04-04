@@ -2,6 +2,8 @@ package com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.control
 
 import com.jagt.hexagonal.bankapp.transaction.application.ports.input.TransactionServicePort;
 import com.jagt.hexagonal.bankapp.transaction.domain.model.Transaction;
+import com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.mapper.TransactionRestMapper;
+import com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.response.TransactionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,15 +15,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TransactionController {
     private final TransactionServicePort servicePort;
+    private final TransactionRestMapper mapper;
 
     @GetMapping
-    public List<Transaction> getTransactions() {
-        return servicePort.getTransactions();
+    public List<TransactionResponse> getTransactions() {
+        return mapper.toTransactionResponseList(servicePort.getTransactions());
     }
 
     @GetMapping("/{id}")
-    public Transaction getTransaction(@PathVariable Long id) {
-        return servicePort.getTransactionById(id);
+    public TransactionResponse getTransaction(@PathVariable Long id) {
+        return mapper.toTransactionResponse(servicePort.getTransactionById(id));
     }
 
     @PostMapping("/deposit/{accountId}")
