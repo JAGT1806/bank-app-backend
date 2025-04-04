@@ -3,6 +3,8 @@ package com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.control
 import com.jagt.hexagonal.bankapp.transaction.application.ports.input.TransactionServicePort;
 import com.jagt.hexagonal.bankapp.transaction.domain.model.Transaction;
 import com.jagt.hexagonal.bankapp.transaction.domain.model.utils.TransactionType;
+import com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.mapper.TransactionRestMapper;
+import com.jagt.hexagonal.bankapp.transaction.infrastructure.input.rest.response.TransactionResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -32,7 +35,11 @@ class TransactionControllerTest {
     @MockitoBean
     private TransactionServicePort transactionServicePort;
 
+    @MockitoBean
+    private TransactionRestMapper mapper;
+
     private Transaction transaction;
+    private TransactionResponse response;
 
     @BeforeEach
     void setUp() {
@@ -40,11 +47,16 @@ class TransactionControllerTest {
         transaction.setId(1L);
         transaction.setAmount(BigDecimal.valueOf(500));
         transaction.setType(TransactionType.DEPOSIT);
+
+        response = new TransactionResponse(
+                1L, TransactionType.DEPOSIT, BigDecimal.valueOf(500), null, null, LocalDateTime.now()
+        );
     }
 
     @Test
     void getTransactions_ShouldReturnListOfTransactions() throws Exception {
         when(transactionServicePort.getTransactions()).thenReturn(List.of(transaction));
+        when(mapper.toTransactionResponseList(List.of(transaction))).thenReturn(List.of(response));
 
         mockMvc.perform(get("/api/transactions"))
                 .andExpect(status().isOk())
@@ -55,6 +67,7 @@ class TransactionControllerTest {
     @Test
     void getTransaction_ShouldReturnTransaction() throws Exception {
         when(transactionServicePort.getTransactionById(1L)).thenReturn(transaction);
+        when(mapper.toTransactionResponse(transaction)).thenReturn(response);
 
         mockMvc.perform(get("/api/transactions/1"))
                 .andExpect(status().isOk())
@@ -87,6 +100,7 @@ class TransactionControllerTest {
 
     @Test
     void withdraw_ShouldReturnTransaction() throws Exception {
+        transaction.setType(TransactionType.WITHDRAWAL);
         when(transactionServicePort.withdraw(1L, BigDecimal.valueOf(500))).thenReturn(transaction);
 
         mockMvc.perform(post("/api/transactions/withdraw/1")
@@ -94,11 +108,12 @@ class TransactionControllerTest {
                         .content("500"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.type").value("DEPOSIT"));
+                .andExpect(jsonPath("$.type").value("WITHDRAWAL"));
     }
 
     @Test
     void transfer_ShouldReturnTransaction() throws Exception {
+        transaction.setType(TransactionType.TRANSFER);
         when(transactionServicePort.transfer(1L, 2L, BigDecimal.valueOf(500))).thenReturn(transaction);
 
         mockMvc.perform(post("/api/transactions/transfer/1/2")
@@ -106,6 +121,6 @@ class TransactionControllerTest {
                         .content("500"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.type").value("DEPOSIT"));
+                .andExpect(jsonPath("$.type").value("TRANSFER"));
     }
 }
