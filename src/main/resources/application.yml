@@ -14,4 +14,3 @@ spring:
       ddl-auto: update
   jackson:
     default-property-inclusion: non_empty
-    property-naming-strategy: SNAKE_CASE

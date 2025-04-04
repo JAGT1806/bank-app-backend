@@ -1,5 +1,7 @@
 package com.jagt.hexagonal.bankapp.common.handler;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotActivatedException;
 import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotFoundException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.AgeRestrictionException;
 import com.jagt.hexagonal.bankapp.client.domain.exception.ClientHasAccountsException;
@@ -7,14 +9,17 @@ import com.jagt.hexagonal.bankapp.client.domain.exception.ClientNotFoundExceptio
 import com.jagt.hexagonal.bankapp.client.domain.exception.InvalidBirthdayException;
 import com.jagt.hexagonal.bankapp.common.response.ErrorResponse;
 import com.jagt.hexagonal.bankapp.transaction.domain.exception.TransactionNotFoundException;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Stream;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -43,6 +48,16 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "El cliente tiene cuentas asociadas", ex.getMessage());
     }
 
+    @ExceptionHandler(AccountNotActivatedException.class)
+    public ResponseEntity<ErrorResponse> handleAccountNotActivatedException(AccountNotActivatedException ex) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, "Cuenta no activada", ex.getMessage());
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDataAccessException(DataAccessException ex) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error en la base de datos", getSafeDatabaseErrorMessage(ex));
+    }
+
     @ExceptionHandler(InvalidBirthdayException.class)
     public ResponseEntity<ErrorResponse> handleInvalidBirthdayException(InvalidBirthdayException ex) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, "Fecha de nacimiento inválida: Debe ser una fecha en el pasado", ex.getMessage());
@@ -57,6 +72,29 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Operación inválida", ex.getMessage());
     }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        Throwable cause = ex.getCause();
+
+        if(cause instanceof InvalidFormatException formatException) {
+            if (formatException.getTargetType().isEnum()) {
+                List<String> validValues = Stream.of(formatException.getTargetType().getEnumConstants())
+                        .map(Object::toString)
+                        .toList();
+
+                String fieldName = formatException.getPath() != null && !formatException.getPath().isEmpty()
+                        ? formatException.getPath().getFirst().getFieldName()
+                        : "desconocido";
+
+                String message = "Valor inválido para el campo: '" + fieldName + "'. Opciones válidas: " + validValues;
+                return buildErrorResponse(HttpStatus.BAD_REQUEST, "Formato inválido", message);
+            }
+        }
+
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, "Error de formato", "Error en los datos enviados.");
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
@@ -83,5 +121,20 @@ public class GlobalExceptionHandler {
                 String.valueOf(status.value()), error, messages, LocalDateTime.now()
         );
         return ResponseEntity.status(status).body(errorResponse);
+    }
+
+    private String getSafeDatabaseErrorMessage(DataAccessException ex) {
+        if (ex.getCause() != null) {
+            String message = ex.getCause().getMessage();
+            if (message.contains("Detail:")) {
+                String detail = message.split("Detail:")[1].trim();
+                int bracketIndex = detail.indexOf("]");
+                if (bracketIndex != -1) {
+                    detail = detail.substring(0, bracketIndex).trim();
+                }
+                return detail;
+            }
+        }
+        return "Ha ocurrido un error interno en la base de datos";
     }
 }

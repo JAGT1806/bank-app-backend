@@ -9,8 +9,6 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface TransactionPersistenceMapper {
-    @Mapping(target = "sourceAccount", ignore = true)
-    @Mapping(target = "destinationAccount", ignore = true)
     TransactionEntity toEntity(Transaction transaction);
     Transaction toDomain(TransactionEntity entity);
     List<Transaction> toDomain(List<TransactionEntity> entities);

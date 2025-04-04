@@ -2,11 +2,12 @@ package com.jagt.hexagonal.bankapp.account.application.service;
 
 import com.jagt.hexagonal.bankapp.account.application.ports.input.AccountServicePort;
 import com.jagt.hexagonal.bankapp.account.application.ports.output.AccountPersistencePort;
+import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotActivatedException;
 import com.jagt.hexagonal.bankapp.account.domain.exception.AccountNotFoundException;
 import com.jagt.hexagonal.bankapp.account.domain.model.Account;
 import com.jagt.hexagonal.bankapp.account.domain.model.utils.AccountStatus;
 import com.jagt.hexagonal.bankapp.account.domain.model.utils.AccountType;
-import com.jagt.hexagonal.bankapp.client.application.ports.output.ClientPersistencePort;
+import com.jagt.hexagonal.bankapp.client.application.ports.input.ClientServicePort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +21,7 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class AccountService implements AccountServicePort {
     private final AccountPersistencePort accountPersistencePort;
-    private final ClientPersistencePort clientPersistencePort;
+    private final ClientServicePort clientServicePort;
 
     @Override
     public Account findAccountById(Long id) {
@@ -39,7 +40,7 @@ public class AccountService implements AccountServicePort {
 
     @Override
     public Account createAccount(Account account) {
-        clientPersistencePort.findById(account.getClient().getId());
+        clientServicePort.findClientById(account.getClient().getId());
 
         account.setAccountNumber(generateAccountNumber(account.getAccountType()));
 
@@ -68,6 +69,7 @@ public class AccountService implements AccountServicePort {
         }
 
         Account account = findAccountById(id);
+        validateActiveAccount(account);
         account.setBalance(account.getBalance().add(amount));
         account.setUpdatedAt(LocalDateTime.now());
 
@@ -82,6 +84,7 @@ public class AccountService implements AccountServicePort {
         }
 
         Account account = findAccountById(id);
+        validateActiveAccount(account);
         BigDecimal amountToWithdraw = amount;
 
         if(!account.isGmfExempt()) {
@@ -89,7 +92,7 @@ public class AccountService implements AccountServicePort {
             amountToWithdraw = amount.add(gmf);
         }
 
-        if (account.getBalance().compareTo(amount) < 0) {
+        if (account.getBalance().compareTo(amountToWithdraw) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar el retiro.");
         }
 
@@ -102,12 +105,18 @@ public class AccountService implements AccountServicePort {
     @Transactional
     @Override
     public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+        if (fromAccountId.equals(toAccountId)) {
+            throw new IllegalArgumentException("No se puede transferir a la misma cuenta");
+        }
+
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("El monto a transferir debe ser mayor a 0.");
         }
 
         Account fromAccount = findAccountById(fromAccountId);
+        validateActiveAccount(fromAccount);
         Account toAccount = findAccountById(toAccountId);
+        validateActiveAccount(toAccount);
         BigDecimal amountToTransfer = amount;
 
         if(!fromAccount.isGmfExempt()) {
@@ -115,9 +124,10 @@ public class AccountService implements AccountServicePort {
             amountToTransfer = amount.add(gmf);
         }
 
-        if (fromAccount.getBalance().compareTo(amount) < 0) {
+        if (fromAccount.getBalance().compareTo(amountToTransfer) < 0) {
             throw new IllegalArgumentException("Saldo insuficiente para realizar la transferencia.");
         }
+
 
         fromAccount.setBalance(fromAccount.getBalance().subtract(amountToTransfer));
         toAccount.setBalance(toAccount.getBalance().add(amount));
@@ -180,6 +190,12 @@ public class AccountService implements AccountServicePort {
 
         if (account.getAccountNumber() == null || !account.getAccountNumber().matches("^(53|33)\\d{8}$")) {
             throw new IllegalArgumentException("El número de cuenta debe tener 10 dígitos y comenzar con '53' (ahorro) o '33' (corriente).");
+        }
+    }
+
+    private void validateActiveAccount(Account account) {
+        if(account.getStatus() != AccountStatus.ACTIVE) {
+            throw new AccountNotActivatedException(null);
         }
     }
 
