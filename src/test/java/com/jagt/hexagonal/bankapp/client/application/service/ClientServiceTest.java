@@ -36,9 +36,6 @@ class ClientServiceTest {
     @Mock
     private AccountPersistencePort accountPersistencePort;
 
-    @Mock
-    private Validator validator;
-
     @InjectMocks
     private ClientService clientService;
 
@@ -91,6 +88,7 @@ class ClientServiceTest {
 
     @Test
     void deleteClientById_ShouldDelete_WhenClientHasNoAccounts() {
+        when(clientPersistencePort.findById(1L)).thenReturn(Optional.of(client));
         when(accountPersistencePort.findByClient_Id(1L)).thenReturn(List.of());
 
         clientService.deleteClientById(1L);
@@ -100,6 +98,7 @@ class ClientServiceTest {
 
     @Test
     void deleteClientById_ShouldThrowException_WhenClientHasAccounts() {
+        when(clientPersistencePort.findById(1L)).thenReturn(Optional.of(client));
         when(accountPersistencePort.findByClient_Id(1L)).thenReturn(List.of(new Account()));
         assertThrows(ClientHasAccountsException.class, () -> clientService.deleteClientById(1L));
     }
