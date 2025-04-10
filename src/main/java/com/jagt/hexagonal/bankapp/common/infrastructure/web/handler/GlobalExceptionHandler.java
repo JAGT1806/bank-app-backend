@@ -9,6 +9,7 @@ import com.jagt.hexagonal.bankapp.client.domain.exception.ClientNotFoundExceptio
 import com.jagt.hexagonal.bankapp.client.domain.exception.InvalidBirthdayException;
 import com.jagt.hexagonal.bankapp.common.infrastructure.web.response.ErrorResponse;
 import com.jagt.hexagonal.bankapp.transaction.domain.exception.TransactionNotFoundException;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
+@Hidden
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(AccountNotFoundException.class)

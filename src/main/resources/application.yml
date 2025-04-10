@@ -14,3 +14,9 @@ spring:
       ddl-auto: update
   jackson:
     default-property-inclusion: non_empty
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
